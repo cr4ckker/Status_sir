@@ -49,28 +49,32 @@ $(document).ready(function() {
                     </p>
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold mr-2">IP: ${server.ip}</span>
-                    </div>
+                    </div> 
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold" style="width: 50px">CPU:</span>
-                        <div class="progress bg-dark" style="width: 100%">
+                        ${ server.status != 'Critical' ?
+                        `<div class="progress bg-dark" style="width: 300px">
                             <div class="progress-bar progress-bar-striped bg-secondary" role="progressbar" style="width: ${server.cpu}%" aria-valuenow="${server.cpu}" aria-valuemin="0" aria-valuemax="100"></div>
-                            <span class="position-absolute text-center text-light" style="width:96%">${server.cpu}%</span>
-                        </div>
+                            <span class="position-absolute text-center text-light" style="width:300px">${server.cpu}%</span>
+                        </div>` : 
+                        `<span class="badge ${statuses[server.status]}">${server.status}</span>`}
                     </div>
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold" style="width: 50px">RAM:</span>
-                        <div class="progress bg-dark" style="width: 100%">
+                        ${ server.status != 'Critical' ?
+                            `<div class="progress bg-dark" style="width: 300px">
                             <div class="progress-bar progress-bar-striped bg-secondary" role="progressbar" style="width: ${server.ram}%" aria-valuenow="${server.ram}" aria-valuemin="0" aria-valuemax="100"></div>
-                            <span class="position-absolute text-center text-light" style="width:96%">${server.ram}%</span>
-                        </div>
+                            <span class="position-absolute text-center text-light" style="width:300px">${server.ram}%</span>
+                        </div>` :
+                        `<span class="badge ${statuses[server.status]}">${server.status}</span>`}
                     </div>
                     <h6 class="font-weight-bold">Services:</h6>
                     <div class="list-group">
                         ${server.services.map(service => `
                             <div class="list-group-item border-light p-0" id="${serverId}.${service.name}">
-                                <h5 class="list-group-item-heading font-weight-bold d-flex align-items-center justify-content-between">
-                                    <a href="/api/logs/${serverId}.${service.name}" class="pt-1 mx-3 h5">${service.name}</a> <span class="pt-1 badge ${statuses[service.status]} mx-3">${service.status}</a>
-                                </h5>
+                                <h6 class="list-group-item-heading font-weight-bold d-flex align-items-center justify-content-between my-1">
+                                    <a href="/api/logs/${serverId}.${service.name}" class="pt-1 mx-3 my-0 h6">${service.name}</a> <span class="pt-1 badge ${statuses[service.status]} mx-3">${service.status}</a>
+                                </h6>
                             </div>
                         `).join('')}
                     </div>
@@ -102,7 +106,7 @@ $(document).ready(function() {
             dateParagraph.style.width = '4rem';
     
             const contentDiv = document.createElement('div');
-            contentDiv.className = 'ml-3 w-75';
+            contentDiv.className = 'ml-2 w-100';
     
             if (Object.keys(incidents).length === 0) {
                 const noIncidentsParagraph = document.createElement('p');
@@ -116,7 +120,7 @@ $(document).ready(function() {
                 for (const [serverName, incidentsArray] of Object.entries(incidents)) {
                     incidentsArray.forEach(incident => {
                         const incidentItem = document.createElement('li');
-                        incidentItem.className = 'mt-2 pb-2'
+                        incidentItem.className = 'pb-1'
 
                         const article = document.createElement('article');
                         article.className = 'd-flex';
@@ -143,24 +147,22 @@ $(document).ready(function() {
                         statusDiv.appendChild(icon);
     
                         const textDiv = document.createElement('div');
-                        textDiv.style.width = '50vw';
+                        textDiv.className = 'ml-2 w-100'
 
                         const header = document.createElement('div');
-                        header.className = 'row ml-2 align-items-center justify-content-between';
+                        header.className = 'row align-items-center m-0';
 
                         const title = document.createElement('h5');
-                        title.className = 'font-weight-bold w-100 my-0 pt-1';
+                        title.className = 'col-10 font-weight-bold p-0';
                         title.textContent = incident.title;
 
                         const time = document.createElement('time');
                         const timeString = new Date(incident.timestamp * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                         time.setAttribute('time', new Date(incident.timestamp * 1000).toISOString());
-                        time.className = 'small text-muted ml-3 pt-2';
+                        time.className = 'col-2 small text-muted p-0';
                         time.textContent = timeString;
 
                         const description = document.createElement('span');
-                        description.style.width = '30vw'
-                        description.className = 'ml-2 d-flex';
                         description.innerHTML = incident.text.replace('\n', '<br>');
     
                         header.appendChild(title);

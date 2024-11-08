@@ -13,12 +13,22 @@ from models import Service
 
 app = FastAPI()
 
+def flag(code: str):
+    OFFSET = ord('🇦') - ord('A')
+    if not code:
+        return ''
+    try:
+        return ''.join([chr(ord(x) + OFFSET) for x in code.upper()])
+    except ValueError:
+        return ('\\U%08x\\U%08x' % (ord(x) + OFFSET for x in code.upper())).decode('unicode-escape')
+
 def connect():
     sleep(3)
     if SERVER_HOST:
         print('Connecting to monitoring server')
         try:
-            response = requests.post(SERVER_HOST+'/api/connect', json={'secret':SECRET_KEY, 'ip':ip, 'port':SERVER_PORT, 'name':server_name, 'services':[service.name for service in services]})
+            country_code = requests.get(f'https://geolocation-db.com/json/{ip}&position=true').json()['country_code']
+            response = requests.post(SERVER_HOST+'/api/connect', json={'secret':SECRET_KEY, 'ip':ip, 'port':SERVER_PORT, 'name': flag(country_code) + server_name, 'services':[service.name for service in services]})
             print(f'Monitoring server responsed: {response.text}')
         except requests.exceptions.ConnectionError:
             print('Monitoring server is not responding.')
@@ -29,6 +39,9 @@ async def get_logs(service_name: str):
     if service: 
         return Response(service[0].get_logs())
     return Response('Service not found', status_code=400)
+
+@app.post('/reboot')
+async def 
 
 @app.post('/healthcheck')
 async def healthcheck():
@@ -53,4 +66,4 @@ if __name__ == '__main__':
     ip = requests.get('https://icanhazip.com').text.strip()
 
     Thread(target=connect).start()
-    run(app, host=ip, port=int(SERVER_PORT))
+    run(app, host='0.0.0.0', port=int(SERVER_PORT))

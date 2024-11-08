@@ -32,7 +32,7 @@ class DB:
                      );''')
 
     def get_servers(self):
-        servers = self.execute('SELECT id FROM servers')
+        servers = self.execute('SELECT id FROM servers ORDER BY status ASC')
 
         for server in servers:
             yield Server(server[0])
@@ -46,8 +46,8 @@ class DB:
         db_info = self.execute('SELECT id FROM servers WHERE ip = ? AND port = ?', server.ip, server.port, fetchone=True)
         if db_info:
             self.execute('UPDATE servers SET name = ?, services = ? WHERE id = ?', server.name, dumps(server.services), db_info[0])
-        else: 
-            self.execute('INSERT INTO servers VALUES (?, ?, ?, ?, ?)', uid, server.ip, server.port, server.name, dumps(server.services))
+        else:
+            self.execute('INSERT INTO servers VALUES (?, ?, ?, ?, ?, ?, ?)', uid, server.ip, server.port, server.name, dumps(server.services), 0, 0)
         return uid
 
     def server_update(self, server_id, cpu, ram):
