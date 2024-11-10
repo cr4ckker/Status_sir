@@ -3,6 +3,7 @@ from json import loads
 from requests import get, post
 from time import time
 
+from datetime import datetime
 from pydantic import BaseModel
 
 status_messages = {
@@ -13,6 +14,7 @@ status_messages = {
 }
 
 class store:
+    last_updates = {}
     servers = {}
 
 class Server:
@@ -32,25 +34,30 @@ class Server:
     def get_logs(self, service):
         return get('http://%s:%s/logs/%s' % (self.ip, self.port, service)).text
             
-    def ping(self):
-        try:
-            print(f'[ {self.name} ] checking')
-            response = post('http://%s:%s/healthcheck' % (self.ip, self.port), json={'timestamp':time()})
-            response_data = response.json()
-            server_status = response_data['status']
-            store.db.server_update(self.id, response_data['cpu'], response_data['ram'])
-            for service in response_data['services']:
-                service_status = store.db.get_status(self.id, service)
-                new_status = response_data['services'][service]
-                if service_status != new_status:
-                    store.db.add_update(service, self.id, new_status, service, status_messages[new_status] % service)
-                print(f'[ {self.name} ] Service {service}:\t{new_status}')
-        except requests.exceptions.ConnectionError:
-            server_status = 'Critical'
-            print(f'[ {self.name} ] Not responding')
-        finally:
-            if server_status != store.db.get_status(self.id, self.name):
-                store.db.add_update(self.name, self.id, server_status, self.name, status_messages[server_status] % self.name)
+    def ping(self, check_num: int = 1e10):
+        print(f'[ {datetime.now():%H:%M:%S} ] {'[ %s ]' % self.name:<35} Checking')
+        store.last_updates[self.id] = max(check_num, store.last_updates.get(self.id, 0))
+        for attempt in range(4):
+            try:
+                response = post('http://%s:%s/healthcheck' % (self.ip, self.port), json={'timestamp':time()}, timeout=15)
+                response_data = response.json()
+                server_status = response_data['status']
+                break
+            except requests.exceptions.ConnectionError: 
+                if attempt == 3:
+                    server_status = 'Critical'
+                    print(f'[ {datetime.now():%H:%M:%S} ] {'[ %s ]' % self.name:<35} Not responding #{attempt} Attempt( {'Actual' if store.last_updates[self.id] <= check_num else 'Obsolete'}\t#{check_num})')
+        if server_status != store.db.get_status(self.id, self.name) and store.last_updates[self.id] <= check_num:
+            store.db.add_update(self.name, self.id, server_status, self.name, status_messages[server_status] % self.name)
+        
+        store.db.server_update(self.id, response_data['cpu'], response_data['ram'])
+        for service in response_data['services']:
+            store.last_updates[service] = max(check_num, store.last_updates.get(service, 0))
+            service_status = store.db.get_status(self.id, service)
+            new_status = response_data['services'][service]
+            if service_status != new_status and store.last_updates[service] <= check_num:
+                store.db.add_update(service, self.id, new_status, service, status_messages[new_status] % service)
+            print(f'[ {datetime.now():%H:%M:%S} ] {'[ %s ]' % self.name:<35} Service {'%s:' % service:<20} {new_status:<15} ( {'Actual' if store.last_updates[service] <= check_num else 'Obsolete'}\t#{check_num})')
                 
 class req_server(BaseModel):
     secret: str

@@ -32,7 +32,7 @@ class DB:
                      );''')
 
     def get_servers(self):
-        servers = self.execute('SELECT id FROM servers ORDER BY status ASC')
+        servers = self.execute('SELECT id FROM servers ORDER BY "_rowid_" ASC;')
 
         for server in servers:
             yield Server(server[0])

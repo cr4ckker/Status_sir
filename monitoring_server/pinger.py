@@ -1,27 +1,38 @@
+from queue import Queue
+from threading import Thread
 from time import sleep, time
+from datetime import datetime
 from traceback import print_exc
 
 import config
 from db import DB, Server, store
 
-
-def pinger():
-    next_update = time()
-
+def worker():
     while True:
-        if next_update > time():
-            sleep(next_update - time())
-        next_update += config.PING_INTERVAL
-        print(f'Check started {time()}')
-        for server in store.db.get_servers():
-            try:
-                server.ping()
-            except ConnectionError:
-                store.db.add_update(server.name, server.id, 'Critical', f'Сервер {server.name} не отвечает', 'Ошибка соединения с сервером при отправке пинга.')
-            except Exception as e:
-                print_exc()
-        print(f'Check ended {time()}')
+        server, check_num = store.check_queue.get()
+        if server and store.check_num <= check_num:
+            server.ping(check_num)
+
+def Check_servers():
+    print(f'[ {datetime.now():%H:%M:%S} ] Check #{store.check_num} started')
+    for server in store.db.get_servers():
+        if server.id not in store.last_updates:
+            store.last_updates[server.id] = store.check_num
+        store.check_queue.put((server, store.check_num))
+
+def Pinger():
+    while True:
+        if time() // config.PING_INTERVAL > store.check_num:
+            store.check_num = int(time() // config.PING_INTERVAL)
+            Thread(target=Check_servers, daemon=True).start()
+        sleep(0.05)
 
 if __name__ == '__main__':
+    store.check_num = 0
+    store.last_updates = {}
+    store.check_queue = Queue()
     store.db = DB('data.db')
-    pinger()
+
+    workers = [Thread(target=worker) for _ in range(50)]
+    [t.start() for t in workers]
+    Pinger()
