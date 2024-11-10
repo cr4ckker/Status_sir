@@ -28,7 +28,7 @@ def connect():
         print('Connecting to monitoring server')
         try:
             country_code = requests.get(f'https://geolocation-db.com/json/{ip}&position=true').json()['country_code']
-            response = requests.post(SERVER_HOST+'/api/connect', json={'secret':SECRET_KEY, 'ip':ip, 'port':SERVER_PORT, 'name': flag(country_code) + server_name, 'services':[service.name for service in services]})
+            response = requests.post(SERVER_HOST+'/api/connect', json={'secret':SECRET_KEY, 'ip':ip, 'port':SERVER_PORT, 'name': flag(country_code) + ' ' + server_name, 'services':[service.name for service in services]})
             print(f'Monitoring server responsed: {response.text}')
         except requests.exceptions.ConnectionError:
             print('Monitoring server is not responding.')
@@ -41,7 +41,11 @@ async def get_logs(service_name: str):
     return Response('Service not found', status_code=400)
 
 @app.post('/reboot')
-async def 
+async def reboot():
+    try:
+        return Response('OK')
+    finally:
+        os.system('reboot now')
 
 @app.post('/healthcheck')
 async def healthcheck():
