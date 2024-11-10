@@ -12,6 +12,8 @@ var incident_icons = {
     Unknown: '<path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1 5h2v10h-2v-10zm1 14.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/>'    
 }
 
+const statusPriority = { "Critical": 1, "Warning": 2, "Operational": 3, "Maintenance": 4 };
+
 var last_info = {}
 
 $(document).ready(function() {
@@ -34,6 +36,7 @@ $(document).ready(function() {
     function displayServers() {
         const serversContainer = $('#servers');
         serversContainer.empty();
+        last_info.servers = Object.fromEntries(Object.entries(last_info.servers).sort((a, b) => statusPriority[a[1].status] - statusPriority[b[1].status]));
 
         $.each(last_info.servers, function(serverId, server) {
             const serverItem = `
