@@ -33,7 +33,10 @@ class Server:
 
     def get_logs(self, service):
         return get('http://%s:%s/logs/%s' % (self.ip, self.port, service)).text
-            
+    
+    def reboot(self):
+        return post('http://%s:%s/reboot' % (self.ip, self.port)).text
+
     def ping(self, check_num: int = 1e10):
         print(f'[ {datetime.now():%H:%M:%S} ] {'[ %s ]' % self.name:<35} Checking')
         store.last_updates[self.id] = max(check_num, store.last_updates.get(self.id, 0))

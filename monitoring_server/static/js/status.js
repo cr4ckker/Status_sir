@@ -17,6 +17,20 @@ const statusPriority = { "Critical": 1, "Warning": 2, "Operational": 3, "Mainten
 var last_info = {}
 
 $(document).ready(function() {
+    function reboot(server_id) {
+        $.ajax({
+            url: `api/reboot/${server_id}`,
+            method: 'POST',
+            dataType: 'json',
+            success: function(data) {
+                console.log(data)
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Ошибка при получении данных:', textStatus, errorThrown);
+            }
+        });
+    }
+    
     function fetchServerStatus() {
         $.ajax({
             url: 'api/status',
@@ -47,9 +61,12 @@ $(document).ready(function() {
                             <i class="fa fa-question-circle"></i>
                         </a>
                     </h4>
-                    <p class="list-group-item-text">
+                    <p class="list-group-item-text mb-2">
                         <span class="badge ${statuses[server.status]}">${server.status}</span>
                     </p>
+                    <div class="row ml-0">
+                        <button type="button" class="btn btn-danger mb-2 mr-1 py-0 reboot" server-id="${serverId}">Reboot</button>
+                    </div>
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold mr-2">IP: ${server.ip}</span>
                     </div> 
@@ -84,6 +101,14 @@ $(document).ready(function() {
                 </div>
             `;
             serversContainer.append(serverItem);
+        });
+
+        document.querySelectorAll('.reboot').forEach(button => {
+            const serverId = button.getAttribute('server-id');
+
+            button.addEventListener('click', function() {
+                reboot(serverId);
+            });
         });
     }
 

@@ -15,28 +15,37 @@ from db import DB
 
 app = FastAPI()
 static_files = APIRouter(prefix='/static')
+api = APIRouter(prefix='/api')
 
 @static_files.get('/js/{filename}')
 def get_js_file(filename: str):
     with open(f'static/js/{filename}') as f:
         return Response(f.read())
 
-@app.get('/api/logs/{service_id}')
-async def get_logs(service_id):
+@api.get('/logs/{service_id}')
+async def get_logs(service_id: str):
     server_id = service_id.split('.')[0]
     service_name = ''.join(service_id.split('.')[1::])
     server = Server(server_id)
     try:
         return server.get_logs(service_name)
     except requests.exceptions.ConnectionError:
-        return Response('Connection error to server', status_code=500)
+        return Response('Connection error', status_code=500)
+    
+@api.post('/reboot/{server_id}')
+async def reboot(server_id: str):
+    server = Server(server_id)
+    try:
+        return server.reboot()
+    except requests.exceptions.ConnectionError:
+        return Response('Connection error', status_code=500)
 
 @app.get('/status')
 async def status():
     with open('templates/status.html') as f:
         return HTMLResponse(f.read())
 
-@app.post('/api/status')
+@api.post('/status')
 async def GetStatus():
     total_report = {'servers':{},
                     'updates':{},
@@ -66,14 +75,14 @@ async def GetStatus():
             total_report['updates'][key][update[1]].append(jsonify_update(update))
     return JSONResponse(total_report)
 
-@app.post('/api/update')
+@api.post('/update')
 async def AddUpdate(request: Request, update: models.req_update):
     if SECRET_KEY != update.secret:
         return Response(status_code=403)
     store.db.add_update(update.service_name, update.server_id, update.status, update.title, update.text)
     return Response('OK')
 
-@app.post('/api/connect')
+@api.post('/connect')
 async def AddServer(request: Request, server: models.req_server):
     try:
         if SECRET_KEY != server.secret:
@@ -87,7 +96,7 @@ async def AddServer(request: Request, server: models.req_server):
         print_exc()
         return Response('Failed', status_code=400)
 
-@app.post('/api/remove')
+@api.post('/remove')
 async def RemoveServer(request: Request, ip: str):
     store.db.remove_server(ip)
     return Response('OK')
@@ -99,5 +108,6 @@ if __name__ == '__main__':
 
     store.db = DB('data.db')
     app.include_router(static_files)
+    app.include_router(api)
     ip = requests.get('https://icanhazip.com').text.strip()
     run(app, host='0.0.0.0', port=int(SERVER_PORT))
