@@ -58,7 +58,8 @@ async def GetStatus():
                          'ip':server.ip,
                          'name': server.name,
                          'cpu':server.cpu if server_status != 'Critical' else 'Unknown',
-                         'ram':server.ram if server_status != 'Critical' else 'Unknown'
+                         'ram':server.ram if server_status != 'Critical' else 'Unknown',
+                         'extra':server.extra if server_status != 'Critical' else {}
                          }
         for service_name in server.services:
             server_report['services'].append({ 'name':service_name, 'status':store.db.get_status(server.id, service_name) if server_status != 'Critical' else 'Unknown'} )

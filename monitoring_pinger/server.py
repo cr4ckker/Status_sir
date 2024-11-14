@@ -1,15 +1,17 @@
-import os, math
+import os
 from threading import Thread
 from time import sleep, time
 
 import requests, psutil
 from uvicorn import run
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse, Response
 from dotenv import load_dotenv
 
 from config import server_name, services
 from models import Service
+
+import extensions
 
 app = FastAPI()
 
@@ -54,11 +56,17 @@ async def healthcheck():
         'status': 'Operational',
         'cpu': psutil.cpu_percent(),
         'ram': psutil.virtual_memory().percent,
-        'services': {}
+        'services': {},
+        'extra':{}
     }
+
     for service in services:
         is_active = service.check()
         response['services'][service.name] = 'Operational' if is_active else 'Critical'
+
+    for _extension in extensions.store.extensions:
+        _extension(response)
+
     return JSONResponse(response)
 
 if __name__ == '__main__':

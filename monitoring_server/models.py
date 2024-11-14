@@ -1,5 +1,5 @@
 import requests.exceptions
-from json import loads
+from json import loads, dumps
 from requests import get, post
 from time import time
 
@@ -18,8 +18,8 @@ class store:
     servers = {}
 
 class Server:
-    __slots = ['id', 'ip', 'port', 'name', 'services', 'cpu', 'ram']
-    __json_vars = ['services']
+    __slots = ['id', 'ip', 'port', 'name', 'services', 'cpu', 'ram', 'extra']
+    __json_vars = ['services', 'extra']
 
     def __init__(self, id):
         self.id = id
@@ -53,7 +53,7 @@ class Server:
         if server_status != store.db.get_status(self.id, self.name) and store.last_updates[self.id] <= check_num:
             store.db.add_update(self.name, self.id, server_status, self.name, status_messages[server_status] % self.name)
         
-        store.db.server_update(self.id, response_data['cpu'], response_data['ram'])
+        store.db.server_update(self.id, response_data['cpu'], response_data['ram'], dumps(response_data['extra']))
         for service in response_data['services']:
             store.last_updates[service] = max(check_num, store.last_updates.get(service, 0))
             service_status = store.db.get_status(self.id, service)

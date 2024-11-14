@@ -70,6 +70,16 @@ $(document).ready(function() {
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold mr-2">IP: ${server.ip}</span>
                     </div> 
+                    ${ 'x-ui' in server.extra ? 
+                        `<div class="row ml-0 align-items-center"> 
+                            <span class="font-weight-bold" style="width: 110px">3X-UI clients:</span>
+                            <span class="badge badge-primary">${server.extra['x-ui'].total}</span>
+                            ${ server.extra['x-ui'].online > 0 ?
+                            `<span class="badge badge-success ml-1">${server.extra['x-ui'].online}</span>` : ``
+                            }
+                        </div>`: ``
+                    }
+                    
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold" style="width: 50px">CPU:</span>
                         ${ server.status != 'Critical' ?
@@ -77,7 +87,7 @@ $(document).ready(function() {
                             <div class="progress-bar progress-bar-striped bg-secondary" role="progressbar" style="width: ${server.cpu}%" aria-valuenow="${server.cpu}" aria-valuemin="0" aria-valuemax="100"></div>
                             <span class="position-absolute text-center text-light" style="width:300px">${server.cpu}%</span>
                         </div>` : 
-                        `<span class="badge ${statuses[server.status]}">${server.status}</span>`}
+                        `<span class="badge ${statuses['Unknown']}">Unknown</span>`}
                     </div>
                     <div class="row ml-0 align-items-center"> 
                         <span class="font-weight-bold" style="width: 50px">RAM:</span>
@@ -86,7 +96,7 @@ $(document).ready(function() {
                             <div class="progress-bar progress-bar-striped bg-secondary" role="progressbar" style="width: ${server.ram}%" aria-valuenow="${server.ram}" aria-valuemin="0" aria-valuemax="100"></div>
                             <span class="position-absolute text-center text-light" style="width:300px">${server.ram}%</span>
                         </div>` :
-                        `<span class="badge ${statuses[server.status]}">${server.status}</span>`}
+                        `<span class="badge ${statuses['Unknown']}">Unknown</span>`}
                     </div>
                     <h6 class="font-weight-bold">Services:</h6>
                     <div class="list-group">

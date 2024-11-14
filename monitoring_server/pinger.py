@@ -9,9 +9,13 @@ from db import DB, Server, store
 
 def worker():
     while True:
-        server, check_num = store.check_queue.get()
-        if server and store.check_num <= check_num:
-            server.ping(check_num)
+        try:
+            server, check_num = store.check_queue.get()
+            if server and store.check_num <= check_num:
+                server.ping(check_num)
+        except:
+            print_exc()
+            print('ping error')
 
 def Check_servers():
     print(f'[ {datetime.now():%H:%M:%S} ] Check #{store.check_num} started')

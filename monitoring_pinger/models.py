@@ -11,7 +11,7 @@ class Service:
         if self.logs_path and os.path.exists(self.logs_path):
             with open(self.logs_path) as f:
                 return f.read()
-        return "Logs file does not exist nor set in the config"
+        return "Logs file does not exist or was not set in the config"
 
     def check(self):
         if self.cmd == 'service':

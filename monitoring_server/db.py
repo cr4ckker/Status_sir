@@ -19,8 +19,6 @@ class DB:
                      severity TEXT,
                      title TEXT,
                      text TEXT,
-                     cpu REAL,
-                     ram REAL,
                      timestamp INTEGER
                      );''')
         self.execute('''CREATE TABLE IF NOT EXISTS servers (
@@ -28,7 +26,10 @@ class DB:
                      ip TEXT,
                      port TEXT,
                      name TEXT,
-                     services TEXT
+                     services TEXT,
+                     cpu REAL,
+                     ram REAL,
+                     extra TEXT
                      );''')
 
     def get_servers(self):
@@ -47,11 +48,11 @@ class DB:
         if db_info:
             self.execute('UPDATE servers SET name = ?, services = ? WHERE id = ?', server.name, dumps(server.services), db_info[0])
         else:
-            self.execute('INSERT INTO servers VALUES (?, ?, ?, ?, ?, ?, ?)', uid, server.ip, server.port, server.name, dumps(server.services), 0, 0)
+            self.execute('INSERT INTO servers VALUES (?, ?, ?, ?, ?, ?, ?, ?)', uid, server.ip, server.port, server.name, dumps(server.services), 0, 0, dumps({}))
         return uid
 
-    def server_update(self, server_id, cpu, ram):
-        self.execute("UPDATE servers SET cpu = ?, ram = ? WHERE id = ?", cpu, ram, server_id)
+    def server_update(self, server_id, cpu, ram, extra):
+        self.execute("UPDATE servers SET cpu = ?, ram = ?, extra = ? WHERE id = ?", cpu, ram, extra, server_id)
 
     def remove_server(self, ip: str):
         self.execute("DELETE FROM servers WHERE ip = ?", ip)
