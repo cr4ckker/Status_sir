@@ -53,7 +53,7 @@ class Server:
         if server_status != store.db.get_status(self.id, self.name) and store.last_updates[self.id] <= check_num:
             store.db.add_update(self.name, self.id, server_status, self.name, status_messages[server_status] % self.name)
         
-        store.db.server_update(self.id, response_data['cpu'], response_data['ram'], dumps(response_data['extra']))
+        store.db.server_update(self.id, response_data.get('cpu', 0), response_data.get('ram', 0), dumps(response_data.get('extra', {})))
         for service in response_data['services']:
             store.last_updates[service] = max(check_num, store.last_updates.get(service, 0))
             service_status = store.db.get_status(self.id, service)
