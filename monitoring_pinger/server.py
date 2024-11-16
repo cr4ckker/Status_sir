@@ -29,7 +29,7 @@ def connect():
     if SERVER_HOST:
         print('Connecting to monitoring server')
         try:
-            country_code = requests.get(f'https://geolocation-db.com/json/{ip}&position=true').json()['country_code']
+            country_code = requests.get(f'https://ipinfo.io/{ip}').json()['country']
             response = requests.post(SERVER_HOST+'/api/connect', json={'secret':SECRET_KEY, 'ip':ip, 'port':SERVER_PORT, 'name': flag(country_code) + ' ' + server_name, 'services':[service.name for service in services]})
             print(f'Monitoring server responsed: {response.text}')
         except requests.exceptions.ConnectionError:
