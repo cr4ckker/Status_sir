@@ -6,6 +6,7 @@ from traceback import print_exc
 
 import config
 from db import DB, Server, store
+from models import extensions
 
 def worker():
     while True:

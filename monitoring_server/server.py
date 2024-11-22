@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from dotenv import load_dotenv
 
 import models
+from models import extensions
 from models import store, Server
 from utils import jsonify_update
 from db import DB
@@ -23,7 +24,10 @@ def get_js_file(filename: str):
         return Response(f.read())
 
 @api.get('/logs/{service_id}')
-async def get_logs(service_id: str):
+async def get_logs(request: Request, service_id: str):
+    event_data = {"method": request.method, "event": request.url.path, "body": {'service_id': service_id}}
+    extensions.utils._process_extensions(event_data)
+
     server_id = service_id.split('.')[0]
     service_name = ''.join(service_id.split('.')[1::])
     server = Server(server_id)
@@ -33,7 +37,10 @@ async def get_logs(service_id: str):
         return Response('Connection error', status_code=500)
     
 @api.post('/reboot/{server_id}')
-async def reboot(server_id: str):
+async def reboot(request: Request, server_id: str):
+    event_data = {"method": request.method, "event": request.url.path, "body": {'service_id': server_id}}
+    extensions.utils._process_extensions(event_data)
+    
     server = Server(server_id)
     try:
         return server.reboot()
@@ -41,12 +48,18 @@ async def reboot(server_id: str):
         return Response('Connection error', status_code=500)
 
 @app.get('/status')
-async def status():
+async def status(request: Request):
+    event_data = {"method": request.method, "event": request.url.path, "body": {}}
+    extensions.utils._process_extensions(event_data)
+
     with open('templates/status.html') as f:
         return HTMLResponse(f.read())
 
 @api.post('/status')
-async def GetStatus():
+async def GetStatus(request: Request):
+    event_data = {"method": request.method, "event": request.url.path, "body": {}}
+    extensions.utils._process_extensions(event_data)
+
     total_report = {'servers':{},
                     'updates':{},
                     'timestamp':time()
@@ -78,6 +91,9 @@ async def GetStatus():
 
 @api.post('/update')
 async def AddUpdate(request: Request, update: models.req_update):
+    event_data = {"method": request.method, "event": request.url.path, "body": update}
+    extensions.utils._process_extensions(event_data)
+
     if SECRET_KEY != update.secret:
         return Response(status_code=403)
     store.db.add_update(update.service_name, update.server_id, update.status, update.title, update.text)
@@ -85,6 +101,9 @@ async def AddUpdate(request: Request, update: models.req_update):
 
 @api.post('/connect')
 async def AddServer(request: Request, server: models.req_server):
+    event_data = {"method": request.method, "event": request.url.path, "body": server}
+    extensions.utils._process_extensions(event_data)
+
     try:
         if SECRET_KEY != server.secret:
             return Response(status_code=403)
