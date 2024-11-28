@@ -26,7 +26,20 @@ $(document).ready(function() {
                 console.log(data)
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                console.error('Ошибка при получении данных:', textStatus, errorThrown);
+                console.error('Error occured while trying to reboot the server: ', textStatus, errorThrown);
+            }
+        });
+    }
+    function remove(server_id) {
+        $.ajax({
+            url: `api/remove/${server_id}`,
+            method: 'POST',
+            dataType: 'json',
+            success: function(data) {
+                console.log(data)
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error occured while trying to remove the server: ', textStatus, errorThrown);
             }
         });
     }
@@ -65,6 +78,7 @@ $(document).ready(function() {
                         <span class="badge ${statuses[server.status]}">${server.status}</span>
                     </p>
                     <div class="row ml-0">
+                        <button type="button" class="btn btn-danger mb-2 mr-1 py-0 remove" server-id="${serverId}" disabled>Remove</button>
                         <button type="button" class="btn btn-danger mb-2 mr-1 py-0 reboot" server-id="${serverId}">Reboot</button>
                     </div>
                     <div class="row ml-0 align-items-center"> 
@@ -118,6 +132,13 @@ $(document).ready(function() {
 
             button.addEventListener('click', function() {
                 reboot(serverId);
+            });
+        });
+        document.querySelectorAll('.remove').forEach(button => {
+            const serverId = button.getAttribute('server-id');
+
+            button.addEventListener('click', function() {
+                remove(serverId);
             });
         });
     }

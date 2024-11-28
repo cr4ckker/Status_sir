@@ -156,7 +156,7 @@ fi
 
 
 chmod +x autorun.sh
-mkdir /etc/status | mv autorun.sh /etc/status/autorun.sh
+mkdir /etc/status && mv autorun.sh /etc/status/autorun.sh
 mkdir /etc/status/config
 
 cron_string='@reboot /bin/bash -li "/etc/status/autorun.sh"'

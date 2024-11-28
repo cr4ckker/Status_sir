@@ -116,9 +116,9 @@ async def AddServer(request: Request, server: models.req_server):
         print_exc()
         return Response('Failed', status_code=400)
 
-@api.post('/remove')
-async def RemoveServer(request: Request, ip: str):
-    store.db.remove_server(ip)
+@api.post('/remove/{server_id}')
+async def RemoveServer(request: Request, server_id: str):
+    store.db.remove_server(server_id)
     return Response('OK')
 
 if __name__ == '__main__':
@@ -129,5 +129,5 @@ if __name__ == '__main__':
     store.db = DB('data.db')
     app.include_router(static_files)
     app.include_router(api)
-    ip = requests.get('https://icanhazip.com').text.strip()
+    ip = requests.get('https://ipv4.icanhazip.com').text.strip()
     run(app, host='0.0.0.0', port=int(SERVER_PORT))

@@ -54,8 +54,8 @@ class DB:
     def server_update(self, server_id, cpu, ram, extra):
         self.execute("UPDATE servers SET cpu = ?, ram = ?, extra = ? WHERE id = ?", cpu, ram, extra, server_id)
 
-    def remove_server(self, ip: str):
-        self.execute("DELETE FROM servers WHERE ip = ?", ip)
+    def remove_server(self, server_id: str):
+        self.execute("DELETE FROM servers WHERE id = ?", server_id)
 
     def add_update(self, service_name: str, server_id: str, severity: str, title: str, text: str = ''):
         result = self.execute('INSERT INTO updates VALUES (?, ?, ?, ?, ?, ?, ?)', str(uuid1()), server_id, service_name, severity, title, text, int(time.time()))
