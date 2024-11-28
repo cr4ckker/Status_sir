@@ -75,7 +75,7 @@ if __name__ == '__main__':
     SERVER_PORT = os.getenv('SERVER_PORT', 7879)
     SERVER_HOST = os.getenv('SERVER_HOST', '')
 
-    ip = requests.get('https://icanhazip.com').text.strip()
+    ip = requests.get('https://ipv4.icanhazip.com').text.strip()
 
     Thread(target=connect).start()
     run(app, host='0.0.0.0', port=int(SERVER_PORT))
