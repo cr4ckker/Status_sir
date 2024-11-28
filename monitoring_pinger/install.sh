@@ -156,9 +156,10 @@ fi
 
 
 chmod +x autorun.sh
-mkdir /etc/status | mv autorun.sh /etc/status/
+mkdir /etc/status | mv autorun.sh /etc/status/autorun.sh
+mkdir /etc/status/config
 
-cron_string='@reboot /bin/bash -li "sleep 5 && /etc/status/autorun.sh"'
+cron_string='@reboot /bin/bash -li "/etc/status/autorun.sh"'
 if ! crontab -l &>/dev/null; then
     echo "Crontab ещё не существует. Создаём новый..."
     crontab -l > /dev/null 2>&1
@@ -166,3 +167,5 @@ fi
 (crontab -l | grep -Fxq "$cron_string") || (crontab -l; echo "$cron_string") | crontab -
 
 echo "Строка добавлена в crontab."
+
+/bin/bash -li "/etc/status/autorun.sh"
