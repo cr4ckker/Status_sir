@@ -4,7 +4,7 @@ from time import sleep, time
 
 import requests, psutil
 from uvicorn import run
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from dotenv import load_dotenv
 
@@ -50,14 +50,17 @@ async def reboot():
         os.system('reboot now')
 
 @app.post('/healthcheck')
-async def healthcheck():
+async def healthcheck(request: Request):
+    timestamp = (await request.json())['timestamp'] * 1000
     response = {
         'name': server_name,
         'status': 'Operational',
         'cpu': psutil.cpu_percent(),
         'ram': psutil.virtual_memory().percent,
         'services': {},
-        'extra':{}
+        'extra':{
+            'latency': time() * 1000 - timestamp
+            }
     }
 
     for service in services:
