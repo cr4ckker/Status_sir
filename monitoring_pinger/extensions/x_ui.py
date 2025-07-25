@@ -53,6 +53,5 @@ x_ui_api = X_UI_API(config)
 @extension # Marks a function as an extension
 @when_service_is_up('x-ui') # Enriches the response only if the service has status "Operational"
 def check_3xui(response: dict) -> dict:
-    total = len(x_ui_api.get_list())
     online = x_ui_api.get_online()
-    response['extra']['x-ui'] = {'total':total, 'online':online}
+    response['extra']['x-ui'] = {'total': 0, 'online':online}

@@ -64,7 +64,8 @@ $(document).ready(function() {
         const serversContainer = $('#servers');
         serversContainer.empty();
         last_info.servers = Object.fromEntries(Object.entries(last_info.servers).sort((a, b) => statusPriority[a[1].status] - statusPriority[b[1].status]));
-
+        let total_online = 0
+        let total_connections = 0
         $.each(last_info.servers, function(serverId, server) {
             const serverItem = `
                 <div class="list-group-item" id="${serverId}">
@@ -76,6 +77,7 @@ $(document).ready(function() {
                     </h4>
                     <p class="list-group-item-text mb-2">
                         <span class="badge ${statuses[server.status]}">${server.status}</span>
+                        <span class="badge ${'latency' in server.extra ? statuses['Operational'] : statuses['Unknown']}">${'latency' in server.extra ? Math.round(server.extra['latency'])+' ms' : 'Not supported'}</span>
                     </p>
                     <div class="row ml-0">
                         <button type="button" class="btn btn-danger mb-2 mr-1 py-0 remove" server-id="${serverId}" disabled>Remove</button>
@@ -124,8 +126,23 @@ $(document).ready(function() {
                     </div>
                 </div>
             `;
+            total_connections += 'x-ui' in server.extra ? server.extra['x-ui'].total : 0
+            total_online += 'x-ui' in server.extra ? server.extra['x-ui'].online : 0
             serversContainer.append(serverItem);
         });
+
+        $('.col-xs-12.my-3')[0].innerHTML = `
+        <h1 class="text-center">Status Monitoring</h1>
+            ${ total_connections || total_online ? 
+            `<div class="row ml-0 align-items-center justify-content-center w-100"> 
+                <h4 class="font-weight-bold mb-0" style="width: 250px">Общая статистика:</h4>
+                <span class="badge badge-info">${last_info.active_users}</span>
+                <span class="badge badge-primary ml-1">${total_connections}</span>
+                ${ total_online > 0 ?
+                `<span class="badge badge-success ml-1">${total_online}</span>` : ``
+                }
+            </div>`: ``
+        }`
 
         document.querySelectorAll('.reboot').forEach(button => {
             const serverId = button.getAttribute('server-id');

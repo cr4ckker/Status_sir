@@ -57,13 +57,14 @@ async def status(request: Request):
 
 @api.post('/status')
 async def GetStatus(request: Request):
-    event_data = {"method": request.method, "event": request.url.path, "body": {}}
-    extensions.utils._process_extensions(event_data)
-
     total_report = {'servers':{},
                     'updates':{},
                     'timestamp':time()
                     }
+    event_data = {"method": request.method, "event": request.url.path, "body": {'report':total_report}}
+    extensions.utils._process_extensions(event_data)
+    print(event_data)
+    
     for server in store.db.get_servers():
         server_status = store.db.get_status(server.id, server.name)
         server_report = {'services': [],
@@ -107,7 +108,7 @@ async def AddServer(request: Request, server: models.req_server):
     try:
         if SECRET_KEY != server.secret:
             return Response(status_code=403)
-        response = requests.post('http://%s:%s/healthcheck' % (server.ip, server.port), timeout=5)
+        response = requests.post('http://%s:%s/healthcheck' % (server.ip, server.port), json={'timestamp':time()}, timeout=5)
         if response.status_code != 200:
             return Response('Failed callback', status_code=400)
         store.db.add_server(server)

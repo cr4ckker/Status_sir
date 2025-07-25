@@ -156,8 +156,10 @@ fi
 
 
 chmod +x autorun.sh
-mkdir /etc/status && mv autorun.sh /etc/status/autorun.sh
-mkdir /etc/status/config
+mkdir /etc/status 
+mv autorun.sh /etc/status/autorun.sh
+mkdir /etc/status/config 
+mv config.json /etc/status/config/x_ui.json
 
 cron_string='@reboot /bin/bash -li "/etc/status/autorun.sh"'
 if ! crontab -l &>/dev/null; then
@@ -165,6 +167,7 @@ if ! crontab -l &>/dev/null; then
     crontab -l > /dev/null 2>&1
 fi
 (crontab -l | grep -Fxq "$cron_string") || (crontab -l; echo "$cron_string") | crontab -
+(crontab -l | grep -Fxq "0 4 * * * /sbin/shutdown -r now") || (crontab -l; echo "0 4 * * * /sbin/shutdown -r now") | crontab -
 
 echo "Строка добавлена в crontab."
 

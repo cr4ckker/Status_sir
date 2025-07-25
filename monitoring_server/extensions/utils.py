@@ -4,7 +4,10 @@ from . import store
 
 def _process_extensions(event):
     for _extension in store.extensions:
-        _extension(event)
+        try:
+            _extension(event)
+        except:
+            print(_extension.f)
 
 def extension(func):
     """
