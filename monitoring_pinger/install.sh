@@ -43,6 +43,7 @@ install_python_packages() {
   if [ -f "reqs.txt" ]; then
     echo "Установка Python-пакетов из файла reqs.txt..."
     python3 -m ensurepip --upgrade
+    python3 -m pip install --upgrade -r reqs.txt --break-system-packages
     python3 -m pip install --upgrade -r reqs.txt
   else
     echo "Файл reqs.txt не найден. Пропускаем установку Python-пакетов."
@@ -91,7 +92,8 @@ install_deps
 
 # Checking python3 is exists
 if command -v python3 &>/dev/null; then
-    :
+    apt install -y python3-pip
+    apt install -y python3-venv
 else
     echo "Python не установлен."
 
@@ -118,28 +120,28 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 else
     echo ".env файл не найден. Использую порт 7879 по умолчанию."
-    PORT=7879  # Порт по умолчанию, если файл .env не найден
+    SERVER_PORT=7879  # Порт по умолчанию, если файл .env не найден
 fi
 
 add_port_ufw() {
-    echo "Используется UFW. Добавляем порт $PORT..."
-    sudo ufw allow $PORT
+    echo "Используется UFW. Добавляем порт $SERVER_PORT..."
+    sudo ufw allow $SERVER_PORT
     sudo ufw reload
-    echo "Порт $PORT добавлен в разрешённые в UFW."
+    echo "Порт $SERVER_PORT добавлен в разрешённые в UFW."
 }
 
 add_port_firewalld() {
-    echo "Используется firewalld. Добавляем порт $PORT..."
-    sudo firewall-cmd --permanent --add-port=$PORT/tcp
+    echo "Используется firewalld. Добавляем порт $SERVER_PORT..."
+    sudo firewall-cmd --permanent --add-port=$SERVER_PORT/tcp
     sudo firewall-cmd --reload
-    echo "Порт $PORT добавлен в разрешённые в firewalld."
+    echo "Порт $SERVER_PORT добавлен в разрешённые в firewalld."
 }
 
 add_port_iptables() {
-    echo "Используется iptables. Добавляем порт $PORT..."
-    sudo iptables -A INPUT -p tcp --dport $PORT -j ACCEPT
+    echo "Используется iptables. Добавляем порт $SERVER_PORT..."
+    sudo iptables -A INPUT -p tcp --dport $SERVER_PORT -j ACCEPT
     sudo iptables-save > /etc/iptables/rules.v4
-    echo "Порт $PORT добавлен в разрешённые в iptables."
+    echo "Порт $SERVER_PORT добавлен в разрешённые в iptables."
 }
 
 if command -v ufw &>/dev/null; then
@@ -153,13 +155,13 @@ else
     exit 1
 fi
 
-
-
 chmod +x autorun.sh
 mkdir /etc/status 
 mv autorun.sh /etc/status/autorun.sh
 mkdir /etc/status/config 
 mv config.json /etc/status/config/x_ui.json
+# chmod +x update_ipset.sh
+# mv update_ipset.sh /etc/update_ipset.sh
 
 cron_string='@reboot /bin/bash -li "/etc/status/autorun.sh"'
 if ! crontab -l &>/dev/null; then
@@ -167,7 +169,9 @@ if ! crontab -l &>/dev/null; then
     crontab -l > /dev/null 2>&1
 fi
 (crontab -l | grep -Fxq "$cron_string") || (crontab -l; echo "$cron_string") | crontab -
-(crontab -l | grep -Fxq "0 4 * * * /sbin/shutdown -r now") || (crontab -l; echo "0 4 * * * /sbin/shutdown -r now") | crontab -
+(crontab -l | grep -Fxq "0 9 * * * /sbin/shutdown -r now") || (crontab -l; echo "0 9 * * * /sbin/shutdown -r now") | crontab -
+(crontab -l | grep -Fxq "3-58/5 * * * * /bin/bash "/etc/status/autorun.sh"") || (crontab -l; echo "3-58/5 * * * * /bin/bash "/etc/status/autorun.sh"") | crontab -
+# (crontab -l | grep -Fxq "*/10 * * * * /etc/update_ipset.sh >/dev/null 2>&1") || (crontab -l; echo "*/10 * * * * /etc/update_ipset.sh >/dev/null 2>&1") | crontab -
 
 echo "Строка добавлена в crontab."
 

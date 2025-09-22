@@ -5,6 +5,8 @@
 #   - run "crontab -e" and add this line:
 #     @reboot /bin/bash -li ~/autorun.sh
 
+export PATH=$PATH:/usr/local/bin:/bin:/usr/bin
+
 start_tmux_session() {
     if tmux has-session -t $1 > /dev/null 2>&1; then
         :

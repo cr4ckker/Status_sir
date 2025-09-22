@@ -18,11 +18,11 @@ status_messages = {
     'Critical': '%s не отвечает',
     'Warning': '%s',
     'Operational': '%s восстановлен',
-    'Maintenance': 'На %s начаты технические работы',
+    'Maintenance': 'На %s начаты технические работы'
 }
 
 @extension # Marks a function as an extension
 def telegram_updates_notifications(event: dict) -> None: 
     if event['event'] != '/update':
         return
-    bot.send_message(config['group'], status_messages[event['body'].status] % event['body'].service_name, message_thread_id=config['topic'])
+    bot.send_message(config['group'], event['body'].title, message_thread_id=config['topic'])
