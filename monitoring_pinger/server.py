@@ -51,7 +51,10 @@ async def reboot():
 
 @app.post('/healthcheck')
 async def healthcheck(request: Request):
-    timestamp = (await request.json())['timestamp'] * 1000
+    if (await request.body()):
+        timestamp = (await request.json())['timestamp'] * 1000
+    else:
+        timestamp = time() * 1000
     response = {
         'name': server_name,
         'status': 'Operational',

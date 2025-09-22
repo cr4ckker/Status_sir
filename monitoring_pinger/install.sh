@@ -74,11 +74,11 @@ install_python() {
 install_deps() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     if [ -f /etc/debian_version ]; then
-      apt install -y tmux cron
+      apt install -y tmux cron gcc
       sudo systemctl start cron
       sudo systemctl enable cron
     elif [ -f /etc/redhat-release ]; then
-      yum install -y tmux cronie
+      yum install -y tmux cronie gcc
       sudo systemctl start crond
       sudo systemctl enable crond
     else
@@ -92,8 +92,8 @@ install_deps
 
 # Checking python3 is exists
 if command -v python3 &>/dev/null; then
-    apt install -y python3-pip
-    apt install -y python3-venv
+    sudo apt install -y python3-pip python3-venv python3-devel
+    sudo yum install -y python3-pip python3-venv python3-devel
 else
     echo "Python не установлен."
 
@@ -169,7 +169,7 @@ if ! crontab -l &>/dev/null; then
     crontab -l > /dev/null 2>&1
 fi
 (crontab -l | grep -Fxq "$cron_string") || (crontab -l; echo "$cron_string") | crontab -
-(crontab -l | grep -Fxq "0 9 * * * /sbin/shutdown -r now") || (crontab -l; echo "0 9 * * * /sbin/shutdown -r now") | crontab -
+# (crontab -l | grep -Fxq "0 9 * * * /sbin/shutdown -r now") || (crontab -l; echo "0 9 * * * /sbin/shutdown -r now") | crontab -
 (crontab -l | grep -Fxq "3-58/5 * * * * /bin/bash "/etc/status/autorun.sh"") || (crontab -l; echo "3-58/5 * * * * /bin/bash "/etc/status/autorun.sh"") | crontab -
 # (crontab -l | grep -Fxq "*/10 * * * * /etc/update_ipset.sh >/dev/null 2>&1") || (crontab -l; echo "*/10 * * * * /etc/update_ipset.sh >/dev/null 2>&1") | crontab -
 
